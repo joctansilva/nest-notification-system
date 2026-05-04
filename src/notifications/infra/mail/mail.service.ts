@@ -31,7 +31,8 @@ export class MailService {
 
       this.logger.log(`Email enviado: ${nodemailer.getTestMessageUrl(info)}`);
     } catch (error) {
-      this.logger.error(`Falha ao enviar e-mail, ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Falha ao enviar e-mail: ${message}`);
       throw error;
     }
   }
