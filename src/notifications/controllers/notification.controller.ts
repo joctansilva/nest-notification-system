@@ -11,7 +11,7 @@ import {
   SendNotificationUseCase,
 } from '../use-cases/send-notification.use-case';
 
-class NotificationBody {
+interface NotificationBody {
   event: string;
   recipientEmail: string;
   payload: Record<string, unknown>;
