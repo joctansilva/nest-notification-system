@@ -1,7 +1,7 @@
 import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable } from '@nestjs/common';
 import { Queue } from 'bullmq';
-import { Notification } from 'src/notifications/domain/notification.entity';
+import { Notification } from '../../domain/notification.entity';
 
 //Nome da fila
 export const NOTIFICATION_QUEUE = 'notifications';
