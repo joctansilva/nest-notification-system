@@ -8,12 +8,18 @@ import {
 } from './infra/queue/notification.producer';
 import { NotificationWorker } from './infra/queue/notification.worker';
 import { MailService } from './infra/mail/mail.service';
+import { BullBoardModule } from '@bull-board/nestjs';
+import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
 
 @Module({
   imports: [
     // Registra a fila
     BullModule.registerQueue({
       name: NOTIFICATION_QUEUE, // 'notifications'
+    }),
+    BullBoardModule.forFeature({
+      name: NOTIFICATION_QUEUE,
+      adapter: BullMQAdapter,
     }),
   ],
   controllers: [NotificationController],
