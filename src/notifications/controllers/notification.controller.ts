@@ -10,12 +10,7 @@ import {
   SendNotificationDto,
   SendNotificationUseCase,
 } from '../use-cases/send-notification.use-case';
-
-interface NotificationBody {
-  event: string;
-  recipientEmail: string;
-  payload: Record<string, unknown>;
-}
+import { NotificationDto } from './notification.dto';
 
 @Controller('notifications') // rota /notifications
 export class NotificationController {
@@ -26,7 +21,7 @@ export class NotificationController {
 
   @Post() // POST /notifications
   @HttpCode(HttpStatus.ACCEPTED) // Retorna 202
-  async handle(@Body() body: NotificationBody) {
+  async handle(@Body() body: NotificationDto) {
     // Validaçao básica dos campos obrigatórios
     if (!body.event || !body.recipientEmail) {
       throw new BadRequestException(
