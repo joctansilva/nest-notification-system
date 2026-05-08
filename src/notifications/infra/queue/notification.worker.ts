@@ -1,14 +1,23 @@
-import { Processor, WorkerHost } from '@nestjs/bullmq';
-import { Job } from 'bullmq';
+import {
+  InjectQueue,
+  OnWorkerEvent,
+  Processor,
+  WorkerHost,
+} from '@nestjs/bullmq';
+import { Job, Queue } from 'bullmq';
 import { Logger } from '@nestjs/common';
 import { MailService } from '../mail/mail.service';
 import { NOTIFICATION_QUEUE } from './notification.producer';
+import { NOTIFICATION_DLQ } from './notification.dlq';
 
-@Processor(NOTIFICATION_QUEUE)
+@Processor(NOTIFICATION_QUEUE, { concurrency: 5 }) // O nome da fila que esse worker vai processar
 export class NotificationWorker extends WorkerHost {
   private readonly logger = new Logger(NotificationWorker.name);
 
-  constructor(private readonly mailService: MailService) {
+  constructor(
+    private readonly mailService: MailService,
+    @InjectQueue(NOTIFICATION_DLQ) private readonly dlq: Queue,
+  ) {
     super();
   }
   // process() é chamado automaticamente quando chega um job na fila
@@ -25,10 +34,36 @@ export class NotificationWorker extends WorkerHost {
         await this.handleOrderConfirmed(job.data);
         break;
 
+      case 'force.fail':
+        throw new Error(
+          `Falha forçada para teste de DLQ (tentativa ${job.attemptsMade + 1})`,
+        );
+
       default:
         // Se vier um evento desconhecido, loga mas não lança erro
         this.logger.warn(`Evento desconhecido: ${job.name}`);
     }
+  }
+
+  //Chamado atomaticamente após falhas
+  @OnWorkerEvent('failed')
+  async onFailed(job: Job, error: Error): Promise<void> {
+    if (job.attemptsMade < (job.opts.attempts ?? 1)) return;
+
+    this.logger.error(
+      `Job ${job.id} falhou após ${job.attemptsMade} tentativas. Movendo para DLQ. Erro: ${error.message}`,
+    );
+
+    await this.dlq.add(
+      job.name,
+      {
+        ...job.data,
+        _failedAt: new Date().toISOString(),
+        _error: error.message,
+        _originalJobId: job.id,
+      },
+      { removeOnFail: false },
+    );
   }
 
   // Handler específico para o evento de cadastro de usuário

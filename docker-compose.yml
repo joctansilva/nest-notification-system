@@ -4,3 +4,16 @@ services:
     image: redis:7-alpine
     ports:
       - '6379:6379'
+  app:
+    build: .
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      MAIL_USER: ${MAIL_USER}
+      MAIL_PASS: ${MAIL_PASS}
+    depends_on:
+      - redis
+    deploy:
+      replicas: 3
+    ports:
+      - '3010-3012:3000'

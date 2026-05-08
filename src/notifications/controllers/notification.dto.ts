@@ -1,4 +1,12 @@
-import { IsEmail, IsNotEmpty, IsObject, IsString } from 'class-validator';
+import {
+  IsEmail,
+  IsInt,
+  IsNotEmpty,
+  IsObject,
+  IsString,
+  Max,
+  Min,
+} from 'class-validator';
 
 export class NotificationDto {
   @IsString()
@@ -10,4 +18,15 @@ export class NotificationDto {
 
   @IsObject()
   payload!: Record<string, unknown>;
+}
+
+export class BulkTestDto {
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  total!: number;
+
+  @IsInt()
+  @Min(0)
+  failCount!: number;
 }
